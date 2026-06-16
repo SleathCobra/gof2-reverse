@@ -64,10 +64,16 @@ def read_globals_csv(csv_path: Path) -> list:
         reader = csv.DictReader(f)
         rows = []
         for row in reader:
+            addr = row['address'].strip()
+            raw_name = row['name'].strip()
+            # Create a safe identifier: "global_" + address (without '0x')
+            clean_addr = addr.replace('0x', '').replace('0X', '')
+            identifier = f"global_{clean_addr}"
             rows.append({
-                'address': row['address'].strip(),
-                'name': row['name'].strip(),
-                'default_type': default_global_type(row['name'].strip())
+                'address': addr,
+                'name': raw_name,          # original name (may be mangled)
+                'identifier': identifier,  # safe C++ identifier
+                'default_type': default_global_type(raw_name)
             })
         return rows
 
@@ -76,7 +82,7 @@ def render_templates(template_dir: Path, output_dir: Path,
                      generate_functions_h: bool = False) -> None:
     """Render all templates using Jinja2."""
     env = Environment(loader=FileSystemLoader(template_dir),
-                      trim_blocks=True, lstrip_blocks=True)
+                      trim_blocks=False, lstrip_blocks=False)
 
     # Load functions data if available
     functions = []
@@ -103,6 +109,12 @@ def render_templates(template_dir: Path, output_dir: Path,
         output = template.render(globals=globals_data)
         (output_dir / "globals.h").write_text(output, encoding='utf-8')
         print(f"[✓] Generated globals.h with {len(globals_data)} globals")
+
+        # Render globals.cpp
+        template = env.get_template("globals.cpp.jinja")
+        output = template.render(globals=globals_data)
+        (output_dir / "globals.cpp").write_text(output, encoding='utf-8')
+        print(f"[✓] Generated globals.cpp with {len(globals_data)} globals")
     else:
         print("[!] No globals.csv found, skipping globals.h")
 

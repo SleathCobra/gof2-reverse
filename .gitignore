@@ -12,3 +12,7 @@
 *.ini
 GOF2.exe.bak.i64
 /progress_snapshots
+/proxydll/target
+/.vscode
+/build
+/.xmake
