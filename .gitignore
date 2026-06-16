@@ -4,3 +4,11 @@
 *.nam
 *.til
 *.bak
+/data
+/directxsetup
+*.dll
+*.dat
+*.exe
+*.ini
+GOF2.exe.bak.i64
+/progress_snapshots
